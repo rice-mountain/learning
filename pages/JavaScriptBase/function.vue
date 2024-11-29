@@ -261,5 +261,221 @@
       bob.hello(); // hello bob
       tom.hello(); // hello.tom
     </pre>
+    <h2>new演算子</h2>
+    <p>コンストラクター関数からインスタンスを生成するために使用する演算子</p>
+    <p>・コンストラクター関数の戻り値がオブジェクトの場合は、空のオブジェクトを返却</p>
+    <p>・コンストラクター関数の戻り値がオブジェクト以外の場合は、thisを返却</p>
+    <pre>
+      // newを疑似的に模した実装
+
+      // コンストラクタ関数
+      function fn(a,b) {
+        this.a = a;
+        this.b = b;
+      }
+      fn.prototype.c = function() {}
+
+      // newを疑似的に模した実装
+      function newOpe(C, ...args) {
+        const _this = Object.create(C.prototype); //まずprototypeをコピーし空のオブジェクトを生成
+        const result = C.apply(_this, args); // 空のオブジェクトをコンストラクタ関数のthisとして渡す
+
+        if(typeof result === "object" && result !== null) {
+          return result
+        }
+        return _this;
+      }
+
+      const instance = newOpe(F,1,2);
+    </pre>
+    <h2>instanceof</h2>
+    <p>どのコンストラクタから生成されたオブジェクトかを確認する</p>
+    <p>内部的には、instanceの__proto__と、ターゲットとなるオブジェクトのprototypeの参照先が同じかを確認している</p>
+    <p> target instanceof constructor</p>
+    <h2>関数コンストラクター</h2>
+    <p>関数は実行可能なオブジェクト</p>
+    <p>一般的には使用しない</p>
+    <pre>
+
+      // 関数コンストラクターから生成したfn1関数 (=オブジェクト)
+      const fn1 = new Function('a','b','return a + b')
+
+      // 関数宣言
+      function fn2(a,b) {
+        return a + b
+      }
+
+      fn1(1,2) // 3
+      fn2(1,2) // 3
+      console.log(fn2 instanceof Function) // true
+    </pre>
+
+    <h2>プロトタイプチェーン</h2>
+    <p>プロトタイプの多重形成</p>
+    <p>階層が浅いものから探しに行く</p>
+    <p>OwnProperty ⇒ __proto__ ⇒ __proto__ ... ⇒ Undefined</p>
+    <pre>
+      function Person(name, age) {
+        this.name = name;
+        this.age = age;
+        this.hello = function() {
+          console.log('OwnProperty: hello ' + this.name);
+        } 
+      }
+
+      // Personオブジェクトのprototype
+      Person.prototype.hello = function() {
+        console.log('Person: hello ' + this.name);
+      }
+
+      // Object の prototype
+      Object.prototype./hello = function() {
+        console.log('Object: hello ' + this.name);
+      }
+
+      const bob = new Person('Bob', 18);
+      bob.hello();
+    </pre>
+    <h2>hasOwnPropterty / in</h2>
+    <p>hasOwnProperty : 自分自身のオブジェクトのプロパティに存在するか</p>
+    <pre> obj.hasOwnPropety('search condition') // true/false </pre>
+    <p>in : プロトタイプチェーンをさかのぼって存在確認</p>
+    <pre> console.log('search condition' in obj)</pre>
+    <h2>プロトタイプ継承</h2>
+    <p>別のコンストラクター関数のプロトタイプを受け継いで、機能を流用できること</p>
+    <p>継承：別のコンストラクター関数を受け継ぐこと</p>
+    <pre>
+      function Person(name, age) {
+        this.name = name,
+        this.age = age
+      }
+
+      Person.prototype.hello = function() {
+        console.log('hello', + this.name);
+      }
+
+      function Japanese(name, age, gender) {
+        Person.call(this, name, age)
+      }
+
+      // プロトタイプ継承 (空のオブジェクトに__proto__を持つオブジェクトを生成/代入)
+      Japanese.prototype = Object.create(Person.prototype)
+      
+      // 上書きも可能
+      Japanese.prototype.hello = function() {
+        console.log('こんにちは', + this.name);
+      }
+      Japanese.prototype.bye = function() {
+        console.log('さようなら', + this.name);
+      }
+
+      const taro = new Japanese('Taro', 23, 'Male');
+      console.log(taro)
+      taro.hello();
+    </pre>
+
+    <h2>クラス</h2>
+    <p>コンストラクター関数のシンタックスシュガー</p>
+    <p>内部的にはコンストラクター関数が実行されている</p>
+    <p>クラス継承：ほかのクラスのプロパティとメソッドを継承すること</p>
+    <pre>
+      class Person {
+        constructor(name, age) {
+          this.name = name
+          this.age = age;
+        }
+
+        hello() {
+          console.log('hello ' + this.name)
+        }
+      }
+
+      class Japanese extends Person {
+        constructor(name, age, gender) {
+          super(name,age)
+          this.gender = gender
+        }
+
+        hello() {
+          console.log('こんにちは ' + this.name)
+        }
+        bye() {
+          console.log('さようなら ' + this.name)
+        }
+      }
+
+      const bob = new Person('Bob', 23)
+      const taro = new Japanese('Taro', 23, 'Male');
+      console.log(bob);
+      console.log(taro);
+    </pre>
+    <h2>super</h2>
+    <p>継承元の関数を呼び出すためのキーワード</p>
+    <p>クラスの中でのみ使用</p>
+    <h2>ビルトインオブジェクト</h2>
+    <p>コード実行前にJavaScriptエンジンによって自動的に生成されるオブジェクト</p>
+    <h2>ラッパーオブジェクト</h2>
+    <p>プリミティブ値を内包するオブジェクト</p>
+    <pre>
+      const a = new String('hello') // const a = 'hello' でも同じ挙動（暗黙的にラッパーオブジェクトが呼ばれている）
+      console.log(a);
+      console.log(a.toUpperCase);
+
+      const b = new Number(100);
+      console.log(b)
+      console.log(b.toExponential)
+    </pre>
+    <h2>Symbol</h2>
+    <p>propertyの重複を避けるために、必ず一意の値を返す関数</p>
+    <p>ECMAScriptのバージョンが上がる際の競合を避けるために導入された経緯</p>
+    <pre>
+      const s = Symbol(hello); // new演算子は不要
+      console.log(s) // symbol(hello)
+      const s2 = Symbol(hello);
+      console.log(s === s2) // false
+
+    </pre>
+    <h2>プロパティとディスクリプタ</h2>
+    <p>プロパティに設定できるもの</p>
+    <li>value: 値</li>
+    <li>configurable: 設定変更可能性</li>
+    <li>enumerable: 列挙可能性</li>
+    <li>wraitable: 値の変更可能性</li>
+    <li>set: </li>
+    <li>get: </li>
+    <pre>
+      const obj = {prop: 0};
+      const descriptor = Object.getOwnPropertyDescriptor(obj, prop)
+      console.log(descriptor)
+
+      const obj2 = {};
+      Object.defineProperty(obj, 'prop', {
+        value: 0
+      })
+      const descriptor2 = Object.getOwnPropertyDescriptor(obj, prop)
+      console.log(descriptor2)
+    </pre>
+    <pre>
+      class Person {
+        constructor(name, age) {
+          this.‗name = name,
+          this._age = age
+        }
+
+        get: name() {
+          return this._name
+        }
+
+        set: name(val) {
+          this._name = vali;
+        }
+
+        static hello() {
+          console.log('hello') // staticメソッド
+        }
+      }
+
+      Person.hello(); // インスタンス化せずにコールできる
+    </pre>
   </div>
 </template>
